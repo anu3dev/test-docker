@@ -1,35 +1,19 @@
-#############################################################
-# STEP 1: Build the application using Maven + JDK 21
-#############################################################
-# Use an official Maven image that already has JDK 21 installed
+# Stage 1: Build the Spring Boot app
 FROM maven:3.9.6-eclipse-temurin-21 AS builder
-
-# Set the working directory inside the container
 WORKDIR /app
-
-# Copy everything from the current folder (project) to /app in the container
 COPY . .
-
-# Run Maven inside the container to build the project
-# - 'clean' removes previous builds
-# - 'package' compiles the project and creates a JAR inside /app/target/
-# - '-DskipTests' avoids running tests during the build (faster build)
 RUN mvn clean package -DskipTests
 
-
-#############################################################
-# STEP 2: Create a smaller runtime image with only JDK 21
-#############################################################
-# Use a lightweight JDK 21 image (based on Alpine Linux)
+# Stage 2: Run the app
 FROM eclipse-temurin:21-jdk-alpine
-
-# Set the working directory inside the runtime container
 WORKDIR /app
 
-# Copy the built JAR from the "builder" stage into this final image
-# Rename it to app.jar inside /app
+# Copy the JAR from the builder stage
 COPY --from=builder /app/target/learn-docker-mysql.jar app.jar
 
-# Define the startup command when the container runs
-# This will launch your Spring Boot application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Copy wait-for-it.sh script
+COPY wait-for-it.sh /wait-for-it.sh
+RUN chmod +x /wait-for-it.sh
+
+# Use wait-for-it to wait for MySQL before starting Spring Boot
+ENTRYPOINT ["/wait-for-it.sh", "db:3306", "--timeout=60", "--strict", "--", "java", "-jar", "app.jar"]
