@@ -20,7 +20,7 @@ services:
   networks:
    - my-new-network
   volumes:
-  - db-student-data:/var/lib/db/data
+  - db-student-data:/var/lib/mysql
   
 networks:
   my-new-network: 
