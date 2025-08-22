@@ -1,8 +1,3 @@
-FROM maven:3.9.6-eclipse-temurin-21 AS builder
-WORKDIR /app
-COPY . .
-RUN mvn clean package -DskipTests
-FROM eclipse-temurin:21-jdk-alpine
-WORKDIR /app
-COPY --from=builder /app/target/*.jar app.jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+FROM openjdk:22-slim-bullseye
+ADD target/learn-docker-mysql.jar learn-docker-mysql.jar
+ENTRYPOINT ["java", "-jar", "/learn-docker-mysql.jar"]
